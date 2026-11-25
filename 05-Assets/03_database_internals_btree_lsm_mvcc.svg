@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="100%" height="100%" style="background-color:#0b0f19; font-family:'Segoe UI', Roboto, Arial, sans-serif;">
+  <defs>
+    <marker id="arr3Y" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fbbf24"/></marker>
+    <marker id="arr3G" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34d399"/></marker>
+  </defs>
+
+  <!-- Header -->
+  <rect x="25" y="18" width="1150" height="78" rx="14" fill="#131b2e" stroke="#1e293b" stroke-width="2"/>
+  <text x="50" y="52" font-size="22" font-weight="bold" fill="#fbbf24">🗄️ ВНУТРЕННЕЕ УСТРОЙСТВО БАЗ ДАННЫХ: WAL, B-TREE vs LSM-TREE И MVCC</text>
+  <text x="50" y="78" font-size="13.5" fill="#94a3b8">Почему Postgres не теряет деньги при отключении света, чем B+Tree отличается от LSM и зачем нужен PgBouncer</text>
+
+  <!-- Top Left: Write Path & WAL -->
+  <g transform="translate(25, 114)">
+    <rect width="565" height="275" rx="12" fill="#111827" stroke="#f59e0b" stroke-width="2"/>
+    <rect x="14" y="14" width="537" height="32" rx="7" fill="#d97706"/>
+    <text x="282" y="35" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">1. ПУТЬ ЗАПИСИ: ПОЧЕМУ WAL (WRITE-AHEAD LOG) СПАСАЕТ ОТ СБОЕВ</text>
+
+    <rect x="22" y="64" width="145" height="90" rx="8" fill="#0d1117" stroke="#38bdf8"/>
+    <text x="94" y="88" font-size="12.5" font-weight="bold" fill="#38bdf8" text-anchor="middle">SQL INSERT /</text>
+    <text x="94" y="106" font-size="12.5" font-weight="bold" fill="#38bdf8" text-anchor="middle">UPDATE</text>
+    <text x="94" y="132" font-size="11" fill="#cbd5e1" text-anchor="middle">Клиент ждёт</text>
+    <text x="94" y="146" font-size="11" fill="#34d399" text-anchor="middle">COMMIT</text>
+
+    <line x1="169" y1="109" x2="200" y2="109" stroke="#fbbf24" stroke-width="3" marker-end="url(#arr3Y)"/>
+
+    <rect x="204" y="64" width="165" height="90" rx="8" fill="#1c1408" stroke="#fbbf24" stroke-width="2"/>
+    <text x="286" y="86" font-size="12.5" font-weight="bold" fill="#fde047" text-anchor="middle">1) Сначала в WAL!</text>
+    <text x="286" y="106" font-size="11" fill="#cbd5e1" text-anchor="middle">Последовательная</text>
+    <text x="286" y="122" font-size="11" fill="#cbd5e1" text-anchor="middle">дозапись в конец</text>
+    <text x="286" y="138" font-family="monospace" font-size="11" fill="#34d399" text-anchor="middle">append + fsync()</text>
+
+    <line x1="371" y1="109" x2="402" y2="109" stroke="#34d399" stroke-width="3" marker-end="url(#arr3G)"/>
+
+    <rect x="406" y="64" width="140" height="90" rx="8" fill="#06281e" stroke="#10b981"/>
+    <text x="476" y="86" font-size="12.5" font-weight="bold" fill="#6ee7b7" text-anchor="middle">2) В RAM Буфер</text>
+    <text x="476" y="106" font-size="11" fill="#cbd5e1" text-anchor="middle">Shared Buffers /</text>
+    <text x="476" y="122" font-size="11" fill="#cbd5e1" text-anchor="middle">MemTable</text>
+    <text x="476" y="142" font-size="10.5" fill="#94a3b8" text-anchor="middle">(Фон пишет на диск)</text>
+
+    <rect x="22" y="170" width="524" height="88" rx="8" fill="#090d16" stroke="#334155"/>
+    <text x="36" y="194" font-size="12.5" font-weight="bold" fill="#fca5a5">⚡ Секрет скорости (Append-Only):</text>
+    <text x="36" y="214" font-size="11.5" fill="#cbd5e1">Искать случайную страницу на диске — ДОЛГО. Дописать строку в конец журнала WAL — МОЛНИЕНОСНО!</text>
+    <text x="36" y="234" font-size="11.5" fill="#34d399">Если вырубят свет: при старте БД проиграет WAL с последнего Checkpoint и восстановит данные на 100%!</text>
+  </g>
+
+  <!-- Top Right: B+Tree vs LSM-Tree -->
+  <g transform="translate(610, 114)">
+    <rect width="565" height="275" rx="12" fill="#111827" stroke="#3b82f6" stroke-width="2"/>
+    <rect x="14" y="14" width="537" height="32" rx="7" fill="#2563eb"/>
+    <text x="282" y="35" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">2. ДВА ДВИЖКА ХРАНЕНИЯ: B+TREE vs LSM-TREE</text>
+
+    <rect x="20" y="62" width="255" height="196" rx="10" fill="#0d1424" stroke="#38bdf8"/>
+    <text x="147" y="86" font-size="13.5" font-weight="bold" fill="#7dd3fc" text-anchor="middle">🌳 B+Tree (PostgreSQL, MySQL)</text>
+    <text x="32" y="110" font-size="11.5" fill="#cbd5e1">• Перезаписывает страницы по</text>
+    <text x="32" y="128" font-size="11.5" fill="#cbd5e1">  <tspan font-weight="bold">8 КБ / 16 КБ</tspan> на месте (In-place).</text>
+    <text x="32" y="150" font-size="11.5" fill="#34d399">• ✅ Очень быстрое ЧТЕНИЕ и</text>
+    <text x="32" y="168" font-size="11.5" fill="#34d399">  диапазоны (<tspan font-family="monospace">BETWEEN, ORDER BY</tspan>).</text>
+    <text x="32" y="192" font-size="11.5" fill="#fbbf24">• ⚠️ Медленнее при миллионах</text>
+    <text x="32" y="210" font-size="11.5" fill="#fbbf24">  случайных записей (Random I/O).</text>
+    <text x="32" y="240" font-size="11" fill="#94a3b8">Глубина дерева для 100M строк = 3–4!</text>
+
+    <rect x="290" y="62" width="255" height="196" rx="10" fill="#171429" stroke="#a855f7"/>
+    <text x="417" y="86" font-size="13.5" font-weight="bold" fill="#d8b4fe" text-anchor="middle">📚 LSM-Tree (RocksDB, Cassandra)</text>
+    <text x="302" y="110" font-size="11.5" fill="#cbd5e1">• Пишет в память (<tspan font-weight="bold">MemTable</tspan>) ➔</text>
+    <text x="302" y="128" font-size="11.5" fill="#cbd5e1">  сбрасывает неизменяемые <tspan font-weight="bold">SSTable</tspan>.</text>
+    <text x="302" y="150" font-size="11.5" fill="#34d399">• ✅ Рекордная скорость ЗАПИСИ</text>
+    <text x="302" y="168" font-size="11.5" fill="#34d399">  (всегда Append-Only без поиска!).</text>
+    <text x="302" y="192" font-size="11.5" fill="#fbbf24">• ⚠️ Чтение проверяет несколько</text>
+    <text x="302" y="210" font-size="11.5" fill="#fbbf24">  слоёв (ускоряют <tspan font-weight="bold" fill="#fde047">Bloom Filter</tspan>!).</text>
+    <text x="302" y="240" font-size="11" fill="#94a3b8">В фоне работает Compaction.</text>
+  </g>
+
+  <!-- Bottom Left: MVCC -->
+  <g transform="translate(25, 408)">
+    <rect width="565" height="332" rx="12" fill="#111827" stroke="#10b981" stroke-width="2"/>
+    <rect x="14" y="14" width="537" height="32" rx="7" fill="#059669"/>
+    <text x="282" y="35" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">3. MVCC В POSTGRESQL: ПОЧЕМУ ЧИТАТЕЛИ НЕ БЛОКИРУЮТ ПИСАТЕЛЕЙ</text>
+
+    <text x="24" y="72" font-size="12.5" fill="#cbd5e1">При <tspan font-family="monospace" fill="#fde047">UPDATE users SET balance = 500</tspan> Postgres <tspan font-weight="bold" fill="#f87171">НЕ стирает</tspan> старую строку:</text>
+    <text x="24" y="92" font-size="12.5" fill="#cbd5e1">он создаёт <tspan font-weight="bold" fill="#34d399">новую версию строки</tspan> с номерами транзакций <tspan font-family="monospace" fill="#38bdf8">xmin / xmax</tspan>!</text>
+
+    <rect x="24" y="112" width="248" height="105" rx="8" fill="#0d1117" stroke="#475569"/>
+    <text x="36" y="136" font-size="12.5" font-weight="bold" fill="#94a3b8">Старая версия (Tuple v1)</text>
+    <text x="36" y="158" font-family="monospace" font-size="11.5" fill="#cbd5e1">balance = 1000</text>
+    <text x="36" y="178" font-family="monospace" font-size="11.5" fill="#38bdf8">xmin = 100 | <tspan fill="#f87171">xmax = 105</tspan></text>
+    <text x="36" y="200" font-size="11" fill="#fde047">Видит транзакция №104 (Snapshot)</text>
+
+    <line x1="274" y1="164" x2="306" y2="164" stroke="#34d399" stroke-width="3" marker-end="url(#arr3G)"/>
+
+    <rect x="310" y="112" width="232" height="105" rx="8" fill="#06281e" stroke="#10b981"/>
+    <text x="322" y="136" font-size="12.5" font-weight="bold" fill="#6ee7b7">Новая версия (Tuple v2)</text>
+    <text x="322" y="158" font-family="monospace" font-size="11.5" fill="#ffffff">balance = 500</text>
+    <text x="322" y="178" font-family="monospace" font-size="11.5" fill="#34d399">xmin = 105 | xmax = 0</text>
+    <text x="322" y="200" font-size="11" fill="#a7f3d0">Видят все новые после 105</text>
+
+    <rect x="24" y="232" width="518" height="84" rx="8" fill="#1b1214" stroke="#ef4444"/>
+    <text x="36" y="255" font-size="12.5" font-weight="bold" fill="#fca5a5">🧹 Цена MVCC — Dead Tuples и VACUUM:</text>
+    <text x="36" y="276" font-size="11.5" fill="#cbd5e1">Если часто делать UPDATE/DELETE, старые мёртвые версии копят мусор (Table Bloat) и тормозят базу.</text>
+    <text x="36" y="296" font-size="11.5" fill="#34d399">Демон <tspan font-weight="bold">Autovacuum</tspan> очищает их. Длинные незакрытые транзакции блокируют очистку!</text>
+  </g>
+
+  <!-- Bottom Right: Connection Pooling & Indexing -->
+  <g transform="translate(610, 408)">
+    <rect width="565" height="332" rx="12" fill="#111827" stroke="#a855f7" stroke-width="2"/>
+    <rect x="14" y="14" width="537" height="32" rx="7" fill="#7c3aed"/>
+    <text x="282" y="35" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">4. ПУЛ СОЕДИНЕНИЙ (PGBOUNCER) И ПРАВИЛА ИНДЕКСОВ</text>
+
+    <rect x="20" y="64" width="525" height="118" rx="8" fill="#0d1424" stroke="#38bdf8"/>
+    <text x="34" y="88" font-size="13" font-weight="bold" fill="#38bdf8">🔌 Почему 500 коннектов без PgBouncer убивают PostgreSQL?</text>
+    <text x="34" y="110" font-size="11.5" fill="#cbd5e1">• В Postgres каждое подключение = <tspan font-weight="bold" fill="#f87171">отдельный процесс ОС (fork!)</tspan> (~10 МБ RAM + борьба за CPU).</text>
+    <text x="34" y="130" font-size="11.5" fill="#cbd5e1">• <tspan font-weight="bold" fill="#34d399">PgBouncer (Transaction Pooling):</tspan> принимает 5,000 лёгких клиентов снаружи и держит</text>
+    <text x="34" y="148" font-size="11.5" fill="#cbd5e1">  ровно 20–50 горячих соединений к самой базе (по формуле ядра × 2 + диски)!</text>
+    <text x="34" y="168" font-size="11" fill="#fde047">Итог: база работает на пике пропускной способности без деградации.</text>
+
+    <rect x="20" y="194" width="525" height="122" rx="8" fill="#090d16" stroke="#334155"/>
+    <text x="34" y="218" font-size="13" font-weight="bold" fill="#fbbf24">📌 3 Золотых правила индексов (<tspan font-family="monospace">EXPLAIN ANALYZE</tspan>):</text>
+    <text x="34" y="240" font-size="11.5" fill="#cbd5e1">1. Составной индекс <tspan font-family="monospace" fill="#34d399">(user_id, created_at)</tspan>: работает для <tspan font-family="monospace">user_id</tspan> и обоих, но НЕ для одного <tspan font-family="monospace">created_at</tspan>!</text>
+    <text x="34" y="260" font-size="11.5" fill="#cbd5e1">2. Создавай индекс без блокировки таблицы: <tspan font-family="monospace" fill="#38bdf8">CREATE INDEX CONCURRENTLY ...</tspan></text>
+    <text x="34" y="280" font-size="11.5" fill="#cbd5e1">3. Лишние индексы замедляют <tspan font-family="monospace">INSERT/UPDATE</tspan> (при каждой вставке обновляются все индексы!).</text>
+    <text x="34" y="302" font-size="11" fill="#f87171">Ищи в EXPLAIN слово «Seq Scan» на миллионных таблицах и заменяй на «Index Only Scan»!</text>
+  </g>
+</svg>

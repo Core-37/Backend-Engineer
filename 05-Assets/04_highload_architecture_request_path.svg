@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="100%" height="100%" style="background-color:#0b0f19; font-family:'Segoe UI', Roboto, Arial, sans-serif;">
+  <defs>
+    <marker id="a4C" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#38bdf8"/></marker>
+    <marker id="a4G" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34d399"/></marker>
+    <marker id="a4Y" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fbbf24"/></marker>
+  </defs>
+
+  <!-- Header -->
+  <rect x="25" y="18" width="1150" height="78" rx="14" fill="#131b2e" stroke="#1e293b" stroke-width="2"/>
+  <text x="50" y="52" font-size="22" font-weight="bold" fill="#22d3ee">🚀 ПУТЬ ЗАПРОСА В HIGH-LOAD СИСТЕМЕ: ОТ ПОЛЬЗОВАТЕЛЯ ДО КЭША, БД И KAFKA</text>
+  <text x="50" y="78" font-size="13.5" fill="#94a3b8">Как масштабировать сервис от 100 до 1,000,000 RPS: балансировщики L4/L7, Rate Limiting, Redis Stampede и Outbox</text>
+
+  <!-- Main Request Path -->
+  <!-- Client + CDN -->
+  <g transform="translate(25, 118)">
+    <rect width="175" height="295" rx="12" fill="#111827" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="87" y="34" font-size="13.5" font-weight="bold" fill="#c4b5fd" text-anchor="middle">1. Клиенты &amp; CDN</text>
+    <text x="87" y="64" font-size="26" text-anchor="middle">📱🌍</text>
+    <text x="14" y="96" font-size="11.5" fill="#cbd5e1">DNS (Anycast) ведёт на</text>
+    <text x="14" y="114" font-size="11.5" fill="#cbd5e1">ближайший PoP <tspan font-weight="bold" fill="#38bdf8">CDN</tspan>.</text>
+    <rect x="14" y="132" width="147" height="82" rx="8" fill="#0d1117" stroke="#6366f1"/>
+    <text x="87" y="154" font-size="11.5" font-weight="bold" fill="#a5b4fc" text-anchor="middle">Edge / CDN:</text>
+    <text x="22" y="174" font-size="11" fill="#cbd5e1">• Статика и видео</text>
+    <text x="22" y="192" font-size="11" fill="#cbd5e1">• TLS терминирование</text>
+    <text x="22" y="208" font-size="11" fill="#34d399">• Защита от DDoS</text>
+    <text x="14" y="242" font-size="11" fill="#94a3b8">Снимает до 80–90%</text>
+    <text x="14" y="260" font-size="11" fill="#94a3b8">трафика до ядра!</text>
+  </g>
+
+  <line x1="202" y1="265" x2="228" y2="265" stroke="#38bdf8" stroke-width="3" marker-end="url(#a4C)"/>
+
+  <!-- L4 & L7 Load Balancers -->
+  <g transform="translate(232, 118)">
+    <rect width="205" height="295" rx="12" fill="#111827" stroke="#06b6d4" stroke-width="2"/>
+    <text x="102" y="34" font-size="13.5" font-weight="bold" fill="#22d3ee" text-anchor="middle">2. Балансировщики</text>
+
+    <rect x="14" y="54" width="177" height="96" rx="8" fill="#0d1424" stroke="#38bdf8"/>
+    <text x="102" y="76" font-size="12.5" font-weight="bold" fill="#7dd3fc" text-anchor="middle">L4 LB (IPVS / NLB)</text>
+    <text x="24" y="96" font-size="11" fill="#cbd5e1">Смотрит только IP+Port</text>
+    <text x="24" y="114" font-size="11" fill="#34d399">Миллионы пакетов/сек</text>
+    <text x="24" y="132" font-size="11" fill="#94a3b8">(Не читает HTTP!)</text>
+
+    <rect x="14" y="164" width="177" height="114" rx="8" fill="#091a16" stroke="#10b981"/>
+    <text x="102" y="186" font-size="12.5" font-weight="bold" fill="#6ee7b7" text-anchor="middle">L7 API Gateway</text>
+    <text x="24" y="206" font-size="11" fill="#cbd5e1">(Envoy / Nginx / Kong)</text>
+    <text x="24" y="226" font-size="11" fill="#fde047">• Token Bucket Limit</text>
+    <text x="24" y="244" font-size="11" fill="#cbd5e1">• Роутинг /api/v1/...</text>
+    <text x="24" y="262" font-size="11" fill="#cbd5e1">• Auth (JWT) + Timeouts</text>
+  </g>
+
+  <line x1="439" y1="265" x2="465" y2="265" stroke="#38bdf8" stroke-width="3" marker-end="url(#a4C)"/>
+
+  <!-- Stateless App Services + gRPC -->
+  <g transform="translate(469, 118)">
+    <rect width="230" height="295" rx="12" fill="#111827" stroke="#3b82f6" stroke-width="2"/>
+    <text x="115" y="34" font-size="13.5" font-weight="bold" fill="#60a5fa" text-anchor="middle">3. Сервисы (Stateless)</text>
+    <rect x="16" y="54" width="198" height="72" rx="8" fill="#0d1117" stroke="#3b82f6"/>
+    <text x="115" y="76" font-size="12" font-weight="bold" fill="#93c5fd" text-anchor="middle">Order Service (Go/Rust)</text>
+    <text x="115" y="96" font-size="11" fill="#cbd5e1" text-anchor="middle">Хранит состояние НЕ в RAM,</text>
+    <text x="115" y="112" font-size="11" fill="#34d399" text-anchor="middle">поэтому легко автоскейлится!</text>
+
+    <text x="115" y="150" font-size="11.5" font-weight="bold" fill="#fde047" text-anchor="middle">↕️ gRPC / HTTP2 (Protobuf)</text>
+
+    <rect x="16" y="166" width="198" height="112" rx="8" fill="#0d1117" stroke="#f59e0b"/>
+    <text x="115" y="188" font-size="12" font-weight="bold" fill="#fcd34d" text-anchor="middle">Паттерны защиты:</text>
+    <text x="26" y="208" font-size="11" fill="#cbd5e1">• <tspan font-weight="bold" fill="#34d399">Idempotency-Key</tspan> (без дублей)</text>
+    <text x="26" y="226" font-size="11" fill="#cbd5e1">• <tspan font-weight="bold" fill="#38bdf8">Circuit Breaker</tspan> (нет каскаду)</text>
+    <text x="26" y="244" font-size="11" fill="#cbd5e1">• <tspan font-weight="bold" fill="#c084fc">Context Timeout</tspan> (дедлайны)</text>
+    <text x="26" y="262" font-size="11" fill="#f87171">• Backoff + Full Jitter</text>
+  </g>
+
+  <line x1="701" y1="200" x2="735" y2="200" stroke="#34d399" stroke-width="3" marker-end="url(#a4G)"/>
+  <line x1="701" y1="325" x2="735" y2="325" stroke="#fbbf24" stroke-width="3" marker-end="url(#a4Y)"/>
+
+  <!-- Right Column: Cache + Sharded DB + Kafka -->
+  <g transform="translate(739, 118)">
+    <rect width="436" height="135" rx="12" fill="#171019" stroke="#ef4444" stroke-width="2"/>
+    <text x="20" y="30" font-size="13.5" font-weight="bold" fill="#fca5a5">4А. Кэш (Redis Cluster — в RAM, ~0.5 мс)</text>
+    <text x="20" y="54" font-size="11.5" fill="#cbd5e1">• Cache-Aside: сначала ищем в Redis ➔ при промахе в БД.</text>
+    <text x="20" y="74" font-size="11.5" fill="#f87171">• Защита от Cache Stampede: <tspan font-weight="bold" fill="#fde047">Singleflight</tspan> (1 запрос в БД, остальные ждут!)</text>
+    <text x="20" y="94" font-size="11.5" fill="#cbd5e1">• Защита от Cache Penetration: <tspan font-weight="bold" fill="#38bdf8">Bloom Filter</tspan> (фильтрует несуществующие ID)</text>
+    <text x="20" y="114" font-size="11" fill="#94a3b8">• Рандомный TTL (чтобы миллион ключей не протухли в 1 секунду!)</text>
+  </g>
+
+  <g transform="translate(739, 268)">
+    <rect width="436" height="145" rx="12" fill="#091a16" stroke="#10b981" stroke-width="2"/>
+    <text x="20" y="30" font-size="13.5" font-weight="bold" fill="#6ee7b7">4Б. Sharded PostgreSQL + Transactional Outbox ➔ Kafka</text>
+    <text x="20" y="54" font-size="11.5" fill="#cbd5e1">• <tspan font-weight="bold" fill="#38bdf8">Read Replicas:</tspan> 90% чтений уходят на реплики (Lag monitoring!).</text>
+    <text x="20" y="74" font-size="11.5" fill="#cbd5e1">• <tspan font-weight="bold" fill="#fde047">Sharding:</tspan> делим записи по <tspan font-family="monospace">tenant_id / user_id</tspan> на N баз.</text>
+    <text x="20" y="94" font-size="11.5" fill="#cbd5e1">• <tspan font-weight="bold" fill="#34d399">Outbox Pattern:</tspan> в ОДНОЙ транзакции пишем заказ + событие в таблицу <tspan font-family="monospace">outbox</tspan>,</text>
+    <text x="20" y="112" font-size="11.5" fill="#cbd5e1">  откуда Debezium/воркер надёжно шлёт его в <tspan font-weight="bold" fill="#c084fc">Apache Kafka</tspan>!</text>
+    <text x="20" y="132" font-size="11" fill="#94a3b8">Исключает двойную запись (Dual Write Problem) без 2PC!</text>
+  </g>
+
+  <!-- Bottom Capacity Planning Cheatbox -->
+  <rect x="25" y="435" width="1150" height="305" rx="14" fill="#111827" stroke="#334155" stroke-width="2"/>
+  <text x="50" y="468" font-size="16" font-weight="bold" fill="#fbbf24">🧮 КАК ПРАВИЛЬНО СЧИТАТЬ НАГРУЗКУ НА SYSTEM DESIGN INTERVIEW (BACK-OF-THE-ENVELOPE):</text>
+
+  <rect x="45" y="490" width="350" height="225" rx="10" fill="#0d1424" stroke="#38bdf8"/>
+  <text x="65" y="518" font-size="13.5" font-weight="bold" fill="#38bdf8">1. Запросы в секунду (RPS / QPS)</text>
+  <text x="65" y="544" font-size="12" fill="#cbd5e1">• В сутках ≈ <tspan font-weight="bold" fill="#fde047">86,400</tspan> (упрощаем до <tspan font-weight="bold">100,000</tspan> сек).</text>
+  <text x="65" y="566" font-size="12" fill="#cbd5e1">• Пример: 10 млн активных юзеров/день × 10 запр.</text>
+  <text x="65" y="586" font-size="12" fill="#34d399">  = 100M / 100k = 1,000 средних RPS.</text>
+  <text x="65" y="610" font-size="12" fill="#cbd5e1">• <tspan font-weight="bold" fill="#f87171">Пик нагрузки (Peak RPS):</tspan> умножаем на 3×–5×</text>
+  <text x="65" y="630" font-size="12" fill="#f87171">  = ~5,000 RPS (проектируем систему под ПИК!).</text>
+  <text x="65" y="660" font-size="11.5" fill="#94a3b8">💡 1 хороший Go-сервис держит 10k–30k лёгких RPS;</text>
+  <text x="65" y="678" font-size="11.5" fill="#94a3b8">   1 Postgres на SSD держит ~2k–5k записей/сек.</text>
+
+  <rect x="425" y="490" width="350" height="225" rx="10" fill="#0d1424" stroke="#a855f7"/>
+  <text x="445" y="518" font-size="13.5" font-weight="bold" fill="#c084fc">2. Память (RAM) для Кэша и Хранение</text>
+  <text x="445" y="544" font-size="12" fill="#cbd5e1">• <tspan font-weight="bold" fill="#fde047">Правило 80/20:</tspan> 80% всех чтений приходят на</text>
+  <text x="445" y="564" font-size="12" fill="#cbd5e1">  20% самых горячих данных — кэшируем их в Redis!</text>
+  <text x="445" y="588" font-size="12" fill="#cbd5e1">• 1 запись в базе (~500 байт) × 100M юзеров</text>
+  <text x="445" y="608" font-size="12" fill="#34d399">  = 50 ГБ на 1 год (с запасом и индексами ~150 ГБ).</text>
+  <text x="445" y="636" font-size="11.5" fill="#cbd5e1">• 1 млн строк × 1 КБ = <tspan font-weight="bold">1 ГБ</tspan>.</text>
+  <text x="445" y="656" font-size="11.5" fill="#cbd5e1">• 1 млрд строк × 1 КБ = <tspan font-weight="bold">1 ТБ</tspan> (пора шардить!).</text>
+
+  <rect x="805" y="490" width="350" height="225" rx="10" fill="#0d1424" stroke="#10b981"/>
+  <text x="825" y="518" font-size="13.5" font-weight="bold" fill="#34d399">3. Почему Kafka быстрее обычных очередей?</text>
+  <text x="825" y="544" font-size="12" fill="#cbd5e1">• <tspan font-weight="bold" fill="#fde047">Sequential Disk I/O:</tspan> пишет сообщения подряд в</text>
+  <text x="825" y="564" font-size="12" fill="#cbd5e1">  лог партиции (быстрее, чем случайный поиск в RAM!).</text>
+  <text x="825" y="588" font-size="12" fill="#cbd5e1">• <tspan font-weight="bold" fill="#38bdf8">Zero-Copy (sendfile):</tspan> отдаёт данные потребителям</text>
+  <text x="825" y="608" font-size="12" fill="#cbd5e1">  напрямую из Page Cache ядра в сетевую карту.</text>
+  <text x="825" y="632" font-size="12" fill="#cbd5e1">• <tspan font-weight="bold" fill="#34d399">Partitioning:</tspan> порядок гарантируется ТОЛЬКО внутри</text>
+  <text x="825" y="652" font-size="12" fill="#cbd5e1">  1 партиции (ключ = <tspan font-family="monospace">order_id / user_id</tspan>)!</text>
+  <text x="825" y="680" font-size="11.5" fill="#fbbf24">Макс. воркеров в группе = числу партиций топика!</text>
+</svg>

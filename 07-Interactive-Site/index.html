@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORE-37 // Backend Systems Engineer Academy</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Top Reading Progress Bar -->
+  <div class="reading-progress-bar" id="readingProgressBar"></div>
+
+  <!-- Left Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-box">
+      <div class="brand-title">
+        <span>⚙️</span>
+        <span>SYSTEMS // ACADEMY</span>
+      </div>
+      <div class="brand-subtitle">Backend Systems Engineer Roadmap (OS, БД, High-Load &amp; SRE)</div>
+    </div>
+
+    <!-- XP & Progress Tracker -->
+    <div class="xp-widget">
+      <div class="xp-header">
+        <span>Прогресс: <span id="xpText">0 / 24 (0%)</span></span>
+        <span class="xp-rank-badge" id="xpRank">L0 Junior Dev</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="xpFill"></div>
+      </div>
+    </div>
+
+    <!-- Dynamic Navigation List -->
+    <ul class="nav-list" id="navList"></ul>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <!-- Sticky Topbar -->
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:240px;">
+        <button class="btn-action" onclick="toggleMobileSidebar()" title="Меню разделов">☰</button>
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input
+            type="text"
+            id="globalSearchInput"
+            class="search-input"
+            placeholder="Поиск по курсу (epoll, WAL, MVCC, Raft, Kafka, PgBouncer, p99)..."
+            oninput="handleGlobalSearch(this.value)"
+          >
+          <span class="search-kbd">Ctrl K</span>
+        </div>
+      </div>
+
+      <div class="topbar-controls">
+        <button class="btn-action btn-recall-trigger" onclick="toggleRecallDrawer()" title="Открыть отдельное окно маленьких вспоминанок (Alt + M)">
+          🧠 Вспоминалки <span class="kbd-mini">Alt+M</span>
+        </button>
+        <button class="btn-action" onclick="renderSection('analogies')" title="Бытовые аналогии">💡 Аналогии</button>
+        <button class="btn-action" onclick="renderSection('commands')" title="Диагностика Linux за 60с и SQL EXPLAIN">🩺 Отладка &amp; SQL</button>
+        <button class="btn-action" id="themeBtn" onclick="toggleTheme()" title="Переключить тему">☀️ Light</button>
+      </div>
+    </header>
+
+    <!-- Dynamic Section Content -->
+    <main class="content-area" id="contentArea"></main>
+  </div>
+
+  <!-- Floating Quick-Recall Window Button -->
+  <button class="recall-fab" onclick="toggleRecallDrawer()" title="Быстрые вспоминалки (Alt + M)">
+    <span>🧠</span>
+    <span>Вспоминалки</span>
+  </button>
+
+  <!-- Floating Scroll-to-Top Button -->
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="Наверх">↑</button>
+
+  <!-- DEDICATED SLIDE-OUT WINDOW: "ОКНО МАЛЕНЬКИХ ВСПОМИНАНОК" -->
+  <div class="recall-backdrop" id="recallBackdrop" onclick="closeRecallDrawer()"></div>
+  <aside class="recall-drawer" id="recallDrawer" aria-label="Окно маленьких вспоминанок">
+    <div class="recall-drawer-header">
+      <div>
+        <div class="recall-drawer-title">⚡🧠 Окно Маленьких Вспоминанок (Backend Systems)</div>
+        <div class="recall-drawer-sub">Повторение за 5 секунд поверх любого урока • <span id="recallCountLabel">45</span> карточек</div>
+      </div>
+      <button class="btn-action" onclick="closeRecallDrawer()" title="Закрыть (Esc)">✕</button>
+    </div>
+
+    <div class="recall-toolbar">
+      <input
+        type="text"
+        id="recallSearchInput"
+        class="search-input"
+        style="width:100%;"
+        placeholder="🔎 Найти вспоминалку (epoll, WAL, MVCC, Raft, CAP, iostat...)"
+        oninput="renderRecallCards()"
+      >
+      <div class="recall-controls-row">
+        <div class="recall-tags" id="recallTags">
+          <button class="tag-pill active" data-tag="all" onclick="setRecallTag('all')">Все</button>
+          <button class="tag-pill" data-tag="os" onclick="setRecallTag('os')">🐧 ОС &amp; Сети</button>
+          <button class="tag-pill" data-tag="code" onclick="setRecallTag('code')">⚡ Go &amp; Алго</button>
+          <button class="tag-pill" data-tag="db" onclick="setRecallTag('db')">🗄️ БД &amp; Redis</button>
+          <button class="tag-pill" data-tag="msg" onclick="setRecallTag('msg')">📨 Kafka/gRPC</button>
+          <button class="tag-pill" data-tag="dist" onclick="setRecallTag('dist')">🌐 CAP &amp; SRE</button>
+          <button class="tag-pill" data-tag="custom" onclick="setRecallTag('custom')">📝 Мои</button>
+        </div>
+        <button class="btn-action" id="quizBlindBtn" onclick="toggleBlindMode()" title="Скрыть ответы для тренировки памяти">
+          🙈 Скрыть ответы
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Personal Note Adder -->
+    <div class="recall-add-box">
+      <div class="recall-add-toggle" onclick="document.getElementById('recallAddForm').classList.toggle('open')">
+        <span>➕ Добавить свою маленькую вспоминалку</span>
+        <span>▼</span>
+      </div>
+      <form id="recallAddForm" class="recall-add-form" onsubmit="addCustomRecall(event)">
+        <input type="text" id="customQ" class="recall-input" placeholder="Короткий вопрос-триггер (напр. Зачем Fencing Token?)" required>
+        <input type="text" id="customA" class="recall-input" placeholder="Ответ + пример/команда (напр. Защита от записи после паузы GC)" required>
+        <button type="submit" class="btn-action btn-primary-mini">💾 Сохранить в мою память</button>
+      </form>
+    </div>
+
+    <div class="recall-cards-list" id="recallCardsList"></div>
+  </aside>
+
+  <!-- Fullscreen Image Lightbox -->
+  <div class="lightbox" id="lightboxModal" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt="Увеличенная схема">
+  </div>
+
+  <!-- Course Data Modules & App Logic -->
+  <script src="data-part1-roadmap-os-code.js"></script>
+  <script src="data-part2-db-distributed-sre.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
